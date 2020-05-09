@@ -3,7 +3,7 @@
 require('leaflet-control-geocoder');
 
 var defaultGeocoder = L.Control.Geocoder.nominatim({
-  serviceUrl: "http://localhost:9966/nominatim"
+  serviceUrl: window.location.origin + '/nominatim/'
 });
 
 var control = L.Control.geocoder({

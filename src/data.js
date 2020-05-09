@@ -2,6 +2,7 @@
 
 var jobs = [];
 var vehicles = [];
+var shipments = [];
 
 // Stored with job id as key.
 var jobsMarkers = {};
@@ -14,6 +15,7 @@ var maxVehicleId = 0;
 
 module.exports = {
   jobs: jobs,
+  shipments: shipments,
   maxJobId: maxJobId,
   maxVehicleId: maxVehicleId,
   vehicles: vehicles,

@@ -8,12 +8,16 @@ var solve = function() {
   // Format json input for solving. Use copies as we might want to
   // update amounts without messing initial objects.
   var input = {
+    shipments: JSON.parse(JSON.stringify(dataHandler.getShipments())),
     jobs: JSON.parse(JSON.stringify(dataHandler.getJobs())),
     vehicles: JSON.parse(JSON.stringify(dataHandler.getVehicles())),
     "options":{
       "g": true
     }
   };
+
+  if(input.jobs.length === 0) delete input.jobs
+  if(input.shipments.length === 0) delete input.shipments
 
   if (!dataHandler.hasCapacity() && input.vehicles.length > 1) {
     for (var j = 0; j < input.jobs.length; j++) {

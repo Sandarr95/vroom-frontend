@@ -7,6 +7,7 @@ var locationHandler = require('./locations');
 var dataHandler = require('./data_handler');
 var solutionHandler = require('./solution_handler');
 var panelControl = require('../controls/panel');
+var jobImport = require('./import')
 
 var reader = new FileReader();
 
@@ -19,7 +20,8 @@ reader.onload = function(event) {
   // a valid json object with the expected keys.
   var validJsonInput = false;
   try {
-    var data = JSON.parse(event.target.result);
+    var as_text = new TextDecoder("utf-8").decode(event.target.result);
+    var data = JSON.parse(as_text);
     validJsonInput = ('jobs' in data) && ('vehicles' in data);
   } catch(e) {}
 
@@ -36,28 +38,32 @@ reader.onload = function(event) {
     }
 
     dataHandler.fitView();
-  } else {
-    // Start line by line parsing.
-    var lines = event.target.result.split("\n");
+    return;
+  }
 
-    // Strip blank lines from file.
-    while (lines.indexOf("") > -1) {
-      lines.splice(lines.indexOf(""), 1);
-    }
+  if(as_text.startsWith("PK")) var validXlsx = jobImport.readXlsx(event.target.result);
+  if (validXlsx) return jobImport.fullXlsxSolution(validXlsx);
 
-    // Used to report after parsing the whole file.
-    var context = {
-      locNumber: 0,
-      // The '1 +' accounts for the first job being actually the
-      // start/end.
-      targetLocNumber: Math.min(lines.length, 1 + api.maxJobNumber),
-      totalLocNumber: lines.length,
-      unfoundLocs: []
-    };
+  // Start line by line parsing.
+  var lines = as_text.split("\n");
 
-    for (var i = 0; i < context.targetLocNumber; ++i) {
-      _batchGeocodeAdd(lines[i], context);
-    }
+  // Strip blank lines from file.
+  while (lines.indexOf("") > -1) {
+    lines.splice(lines.indexOf(""), 1);
+  }
+
+  // Used to report after parsing the whole file.
+  var context = {
+    locNumber: 0,
+    // The '1 +' accounts for the first job being actually the
+    // start/end.
+    targetLocNumber: Math.min(lines.length, 1 + api.maxJobNumber),
+    totalLocNumber: lines.length,
+    unfoundLocs: []
+  };
+
+  for (var i = 0; i < context.targetLocNumber; ++i) {
+    _batchGeocodeAdd(lines[i], context);
   }
 };
 
@@ -97,7 +103,7 @@ var _batchGeocodeAdd = function(query, context) {
 var setFile = function() {
   var fileInput = document.getElementById('user-file');
   fileInput.addEventListener("change", function(event) {
-    reader.readAsText(fileInput.files[0]);
+    reader.readAsArrayBuffer(fileInput.files[0]);
   }, false);
 }
 

@@ -1,0 +1,10 @@
+{
+  http_port 9968
+}
+http://localhost:9968 {
+  route /nominatim/* {
+    uri strip_prefix /nominatim
+    reverse_proxy http://localhost:7070
+  }
+  reverse_proxy http://localhost:9967
+}

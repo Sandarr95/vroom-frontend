@@ -30,19 +30,21 @@ var metaHeaders = [
 ]
 
 async function fullXlsxSolution(workbook) { try {
+  document.getElementById('wait-icon').setAttribute('class', 'wait-icon');
   var deliveryWS = workbook.Sheets[workbook.SheetNames[0]];
   var vehiclesWS = workbook.Sheets[workbook.SheetNames[1]];
   var metaWS = workbook.Sheets[workbook.SheetNames[2]];
   var deliveryJS = xlsx.utils.sheet_to_json(deliveryWS, { header: deliveryHeaders }).filter(d => d.paymentStatus !== 'Failed')
   var vehiclesJS = xlsx.utils.sheet_to_json(vehiclesWS, { header: vehicleHeaders })
   var metaJS = xlsx.utils.sheet_to_json(metaWS, { header: metaHeaders })
+  dataHandler.setSourceData({ deliveryJS, vehiclesJS, metaJS })
   var addressesNotFound = []
   var depoSearch = await search(metaJS[0].full_address)
   if(depoSearch[0])
     var depoLocation = l(depoSearch[0])
   else return addressesNotFound.push("Depo not found, check in 3rd sheet")
-  var shipments = [], jobs = [];
-  var jobsCreated = deliveryJS.map(async (delivery, i) => {
+  var shipments = [];
+  var jobsCreated = deliveryJS.map(async (delivery, i) => { try {
     delivery.description = createDeliveryDescription(delivery, i)
     var results = await search(delivery.street + ", " + delivery.city)
     if(results[0]) {
@@ -53,9 +55,9 @@ async function fullXlsxSolution(workbook) { try {
     }
     var shipment = createShipment(-(-i), delivery.location, new Number(delivery.paidAmount) / 10, depoLocation)
     shipment.description = delivery.description
-    shipments.push(shipment)
+    shipments[i] = shipment
     return;
-  })
+  } catch(e) {console.log(e)} })
   await Promise.all(jobsCreated)
   var vehicles = [], time_window = optimalVehicleTimeWindow(shipments, vehiclesJS)
   for(var i in vehiclesJS) {
@@ -65,9 +67,6 @@ async function fullXlsxSolution(workbook) { try {
     v.description = vehicle.description
     vehicles.push(v)
   }
-  //console.log(jobs)
-  console.log(shipments)
-  console.log(vehicles)
 
   if(addressesNotFound.length) {
     alert("Some addresses were not found:\n" +
@@ -85,15 +84,9 @@ async function fullXlsxSolution(workbook) { try {
   dataHandler.closeAllPopups();
   dataHandler.checkControls();
   dataHandler.fitView();
-} catch (e) { console.log(e) }}
-
-function createDelivery(id, location) {
-  return {
-    id: 13380000000000 + id,
-    location: location,
-    delivery: [ 0, 1 ]
-  }
-}
+} catch (e) { console.log(e) } finally {
+  document.getElementById('wait-icon').removeAttribute('class');
+}}
 
 function createShipment(id, location, quantity, depoLocation) {
   return {
@@ -174,17 +167,14 @@ function throttle(f, ms) {
   return function() {
     var call_time = Date.now();
     var least_wait = scheduler + ms - call_time
-    var inspect_scheduler = scheduler;
     var context = this, args = arguments;
     if(least_wait > 0) {
       scheduler = call_time + least_wait
-      console.log('scheduling task', inspect_scheduler)
       return new Promise((res, rej) => {
         setTimeout(() => f.apply(context, args).then(res).catch(rej), least_wait)
       })
     } else {
       scheduler = call_time;
-      console.log('invoke task directly', inspect_scheduler)
       return f.apply(context, args)
     }
   }

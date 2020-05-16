@@ -9,6 +9,7 @@ var overpass = require('./utils/overpass');
 var address = require('./utils/address');
 var fileHandler = require('./utils/file_handler');
 var solutionHandler = require('./utils/solution_handler');
+var exportHandler = require('./utils/export');
 
 panelControl.addTo(LSetup.map);
 collapseControl.addTo(LSetup.map);
@@ -21,6 +22,8 @@ LSetup.map.on('click', function(e) {
 LSetup.map.on('solve', solutionHandler.solve);
 
 LSetup.map.on('overpass', overpass.query);
+
+LSetup.map.on('export', exportHandler.download);
 
 geocoder.control.markGeocode = function(result) {
   locationsHandler.addPlace(result.geocode.center,

@@ -11,6 +11,7 @@ var fitControl = require('../controls/fit');
 var clearControl = require('../controls/clear');
 var solveControl = require('../controls/solve');
 var summaryControl = require('../controls/summary');
+var exportControl = require('../controls/export');
 
 var routes = [];
 
@@ -83,6 +84,7 @@ var checkControls = function() {
   if (hasSolution()) {
     LSetup.map.removeControl(solveControl);
     LSetup.map.addControl(summaryControl);
+    LSetup.map.addControl(exportControl);
   }
   panelControl.showOverpassButton();
 }
@@ -928,6 +930,9 @@ LSetup.map.on('clear', function() {
   if (LSetup.map.summaryControl) {
     LSetup.map.removeControl(LSetup.map.summaryControl);
   }
+  if (LSetup.map.exportControl) {
+    LSetup.map.removeControl(LSetup.map.exportControl);
+  }
   clearData();
 
   // Delete locations display in the right panel.
@@ -986,6 +991,14 @@ var setSolution = function(data) {
   }
 }
 
+var setSourceData = function(sourceData) {
+  data.sourceData = sourceData;
+}
+
+var getSourceData = function() {
+  return data.sourceData;
+}
+
 module.exports = {
   fitView: fitView,
   clearData: clearData,
@@ -1011,5 +1024,9 @@ module.exports = {
   setData: setData,
   setSolution: setSolution,
   getOverpassQuery: getOverpassQuery,
-  setOverpassData: setOverpassData
+  setOverpassData: setOverpassData,
+  setSourceData: setSourceData,
+  getSourceData: getSourceData
 };
+
+LSetup.map.on('export', require('./export'))

@@ -96,6 +96,11 @@
     background-image: url("../images/fa-icons/cog-alt.svg");
 }
 
+.export-control {
+    background-image: url("../images/fa-icons/download-solid.svg");
+    background-size: 60%;
+}
+
 .collapse-control{
     background-repeat: no-repeat;
     background-size: auto auto;

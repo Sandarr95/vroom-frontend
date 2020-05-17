@@ -26,7 +26,8 @@ var vehicleHeaders = [
   'capacity',
 ]
 var metaHeaders = [
-  'full_address'
+  'full_address',
+  'average_triptime'
 ]
 
 async function fullXlsxSolution(workbook) { try {
@@ -59,7 +60,7 @@ async function fullXlsxSolution(workbook) { try {
     return;
   } catch(e) {console.log(e)} })
   await Promise.all(jobsCreated)
-  var vehicles = [], time_window = optimalVehicleTimeWindow(shipments, vehiclesJS)
+  var vehicles = [], time_window = optimalVehicleTimeWindow(shipments, vehiclesJS, metaJS[0].average_triptime)
   for(var i in vehiclesJS) {
     var vehicle = vehiclesJS[i]
     vehicle.description = createVehicleDescription(vehicle, i)
@@ -130,8 +131,8 @@ function createVehicleDescription(vehicle, i) {
   )
 }
 
-function optimalVehicleTimeWindow(shipments, vehicles) {
-  var averageEstimatedTripTime = 100
+function optimalVehicleTimeWindow(shipments, vehicles, average_triptime) {
+  var averageEstimatedTripTime = average_triptime? new Number(average_triptime): 100
   var serviceTime = shipments.reduce(function(acc, cur) {
     return acc + cur.delivery.service + cur.pickup.service + averageEstimatedTripTime
   }, 0);
